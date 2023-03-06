@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Windows</title>
+    <style>
+        body {
+            background-image: linear-gradient(135deg, #FC466B, #3F5EFB);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        .window {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            min-height: 400px;
+            min-width: 600px;
+            background-color: rgba(201, 201, 201, 0.7);
+            border-radius: 5px;
+            box-shadow: rgba(128, 128, 128, 0.5) 0px 0px 5px 1px;
+            z-index: 1;
+            backdrop-filter: blur(3px);
+            overflow: hidden; resize: both;
+        }
+        .windowBar {
+            position: relative;
+            width: 100%;
+            height: 50px;
+            background-color: rgba(255, 255, 255 0.5);
+            border-bottom: rgba(255, 255, 255, 0.2) 1px solid;
+            border-radius: 5px;
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 0px;
+            z-index: 2;
+            cursor: move;
+        }
+        .taskbar {
+            position: fixed;
+            width: 100%;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.5);
+            /* border-top: black 1px solid; */
+            border-radius: 2px;
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 0px;
+            z-index: 3;
+            top: calc(100% - 50px);
+            left: 0px;
+            display: grid;
+            justify-content: center;
+            align-items: center;
+            grid-template-columns: repeat(auto-fit, 40px);
+        }
+        .windowButton {
+            transition-duration: 0.1s;
+        }
+        .windowButton:hover {
+            filter: brightness(80%);
+        }
+        .windowButton:active {
+            transition-duration: 0s;
+            filter: brightness(60%);
+        }
+
+        @keyframes maximize {
+            0% {
+            }
+            100% {
+                width: 100%;
+                height: calc(100% - 50px);
+                top: 0px;
+                left: 0px;
+            }
+        }
+    </style>
+</head>
+<script>var useKeybinds = true;</script>
+<body onkeydown="windowKeyPressed(event)">
+    <div class="taskbar">
+        <div style="width: 30px; height: 30px; background-color: gray; cursor: pointer;" onclick="createWindow()"></div>
+        <div style="width: 30px; height: 30px; background-color: transparent; cursor: pointer;" onclick="createSettingsWindow()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="gray" width="30px" height="30px" viewBox="0 0 1920 1920">
+                <path d="M1703.534 960c0-41.788-3.84-84.48-11.633-127.172l210.184-182.174-199.454-340.856-265.186 88.433c-66.974-55.567-143.323-99.389-223.85-128.415L1158.932 0h-397.78L706.49 269.704c-81.43 29.138-156.423 72.282-223.962 128.414l-265.073-88.32L18 650.654l210.184 182.174C220.39 875.52 216.55 918.212 216.55 960s3.84 84.48 11.633 127.172L18 1269.346l199.454 340.856 265.186-88.433c66.974 55.567 143.322 99.389 223.85 128.415L761.152 1920h397.779l54.663-269.704c81.318-29.138 156.424-72.282 223.963-128.414l265.073 88.433 199.454-340.856-210.184-182.174c7.793-42.805 11.633-85.497 11.633-127.285m-743.492 395.294c-217.976 0-395.294-177.318-395.294-395.294 0-217.976 177.318-395.294 395.294-395.294 217.977 0 395.294 177.318 395.294 395.294 0 217.976-177.317 395.294-395.294 395.294" fill-rule="evenodd"/>
+            </svg>
+        </div>
+    </div>
+    <div id="main">
+    <div class="window" id="0primarywindow" onpointermove="changeFocus(event, this);">
+        <div id="0primarywindowbox" class="windowBar" style="display:grid; justify-content: right; align-items: center; grid-template-columns: repeat(3, 40px);">
+            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="maximizeWindow(this);">
+                <circle cx="25" cy="25" r="23" fill="#00ff00" stroke="#c0c0c0"/>
+                <rect x="15" y="15" width="20" height="20" fill="none" stroke="#00AA00" stroke-width="4"/>
+              </svg>
+            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="minimizeWindow(this)">
+                <circle cx="25" cy="25" r="23" fill="#FFFF00" stroke="#d0d0d0"/>
+                <line x1="15" y1="25" x2="35" y2="25" stroke="#AAAA00" stroke-width="4"/>
+            </svg>
+            <svg height="35" width="35" viewBox="0 0 50 50" style="cursor: pointer; opacity: 0.8;" class="windowButton" onclick="closeWindow(this);">
+                <circle cx="25" cy="25" r="23" fill="#FF0000" stroke="#d0d0d0"/>
+                <path d="M15,15 Q25,25 35,35" stroke="#AA0000" stroke-width="4"/>
+                <path d="M15,35 Q25,25 35,15" stroke="#AA0000" stroke-width="4"/>
+            </svg>
+        </div>    
+          
+    </div>
+    <div class="window" id="1primarywindow" onpointermove="changeFocus(event, this);">
+        <div id="1primarywindowbox" class="windowBar" style="display:grid; justify-content: right; align-items: center; grid-template-columns: repeat(3, 40px);">
+            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="maximizeWindow(this);">
+                <circle cx="25" cy="25" r="23" fill="#00ff00" stroke="#c0c0c0"/>
+                <rect x="15" y="15" width="20" height="20" fill="none" stroke="#00AA00" stroke-width="4"/>
+              </svg>
+            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="minimizeWindow(this)">
+                <circle cx="25" cy="25" r="23" fill="#FFFF00" stroke="#d0d0d0"/>
+                <line x1="15" y1="25" x2="35" y2="25" stroke="#AAAA00" stroke-width="4"/>
+            </svg>
+            <svg height="35" width="35" viewBox="0 0 50 50" style="cursor: pointer; opacity: 0.8;" class="windowButton" onclick="closeWindow(this);">
+                <circle cx="25" cy="25" r="23" fill="#FF0000" stroke="#d0d0d0"/>
+                <path d="M15,15 Q25,25 35,35" stroke="#AA0000" stroke-width="4"/>
+                <path d="M15,35 Q25,25 35,15" stroke="#AA0000" stroke-width="4"/>
+            </svg>
+        </div>
+        <svg height="100" width="100" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="80" height="80" fill="#00a0d2"/>
+            <circle cx="50" cy="50" r="30" fill="#ffffff"/>
+            <path d="M50 20 A30 30 0 0 1 80 50 L50 50 Z" fill="#00a0d2"/>
+          </svg>
+    </div>
+    <div class="window" id="2primarywindow" onpointermove="changeFocus(event, this);">
+        <div id="2primarywindowbox" class="windowBar" style="display:grid; justify-content: right; align-items: center; grid-template-columns: repeat(3, 40px);">
+            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="maximizeWindow(this);">
+                <circle cx="25" cy="25" r="23" fill="#00ff00" stroke="#c0c0c0"/>
+                <rect x="15" y="15" width="20" height="20" fill="none" stroke="#00AA00" stroke-width="4"/>
+              </svg>
+            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="minimizeWindow(this)">
+                <circle cx="25" cy="25" r="23" fill="#FFFF00" stroke="#d0d0d0"/>
+                <line x1="15" y1="25" x2="35" y2="25" stroke="#AAAA00" stroke-width="4"/>
+            </svg>
+            <svg height="35" width="35" viewBox="0 0 50 50" style="cursor: pointer; opacity: 0.8;" class="windowButton" onclick="closeWindow(this);">
+                <circle cx="25" cy="25" r="23" fill="#FF0000" stroke="#d0d0d0"/>
+                <path d="M15,15 Q25,25 35,35" stroke="#AA0000" stroke-width="4"/>
+                <path d="M15,35 Q25,25 35,15" stroke="#AA0000" stroke-width="4"/>
+            </svg>
+        </div>
+
+    </div>
+</div>
+    <script>
+        var focusedWindow = document.getElementsByClassName("window")[document.getElementsByClassName("window").length-1];
+        function changeFocus(event, window) {
+            if(event.buttons == 1 && isMouseAtCorner(event, window).atCorner != true) {
+                    var tempEl = window;
+                    window.remove();
+                    document.getElementById("main").appendChild(tempEl);
+                    focusedWindow = tempEl;
+            }
+        }
+        function isMouseAtCorner(event, element) {
+            // Set detect area: 
+            var detectArea = 20;
+            // get element bounds
+            let bounds = element.getBoundingClientRect();
+            // get mouse position relative to element
+            let x = event.clientX - bounds.left;
+            let y = event.clientY - bounds.top;
+            // get element width and height
+            let w = bounds.width;
+            let h = bounds.height;
+            // check if mouse is near any corner
+            if((x < detectArea && y < detectArea) || // top left
+                   (x > w - detectArea && y < detectArea) || // top right
+                   (x < detectArea && y > h - detectArea) || // bottom left
+                   (x > w - detectArea && y > h - detectArea)) { // bottom right 
+                   var which;
+                if((x < detectArea && y < detectArea)) {
+                    which = "top left";
+                }
+                else if((x > w - detectArea && y < detectArea)) {
+                    which = "top right";
+                }
+                else if((x < detectArea && y > h - detectArea)) {
+                    which = "bottom left";
+                }
+                else if((x > w - detectArea && y > h - detectArea)) {
+                    which = "bottom right";
+                }
+                return {atCorner: true, which: which, x: x, y: y, width: w, height: h};
+            }
+            else {
+                return {atCorner: false, which: null, x: x, y: y, width: w, height: h};
+            }
+        }
+            function closeWindow(window) {
+            window.parentElement.parentElement.remove();
+            focusedWindow = document.getElementsByClassName("window")[document.getElementsByClassName("window").length-1];
+        }
+        var prevX = 0;
+        var prevY = 0;
+        function getLengthWithoutDuplicate() {
+            if(document.getElementById("primarywindowbox" + document.getElementsByClassName("window").length) != undefined) {
+                return document.getElementsByClassName("window").length+1;
+            }
+            else {
+                return document.getElementsByClassName("window").length;
+            }
+        }
+        function createWindow() {
+            prevX += 20;
+            prevY += 20;
+            console.log(prevX);
+            console.log(prevY);
+            document.getElementById("main").innerHTML += `
+            <div class="window" id="` + getLengthWithoutDuplicate() + `primarywindow" style="position: absolute; top: ` + prevX + `px; left: ` + prevY + `px;" onpointermove="changeFocus(event, this);">
+        <div id="` + getLengthWithoutDuplicate() + `primarywindowbox" class="windowBar" style="display:grid; justify-content: right; align-items: center; grid-template-columns: repeat(3, 40px);">
+            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="maximizeWindow(this);">
+                <circle cx="25" cy="25" r="23" fill="#00ff00" stroke="#c0c0c0"/>
+                <rect x="15" y="15" width="20" height="20" fill="none" stroke="#00AA00" stroke-width="4"/>
+              </svg>
+            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="minimizeWindow(this)">
+                <circle cx="25" cy="25" r="23" fill="#FFFF00" stroke="#d0d0d0"/>
+                <line x1="15" y1="25" x2="35" y2="25" stroke="#AAAA00" stroke-width="4"/>
+            </svg>
+            <svg height="35" width="35" viewBox="0 0 50 50" style="cursor: pointer; opacity: 0.8;" class="windowButton" onclick="closeWindow(this);">
+                <circle cx="25" cy="25" r="23" fill="#FF0000" stroke="#d0d0d0"/>
+                <path d="M15,15 Q25,25 35,35" stroke="#AA0000" stroke-width="4"/>
+                <path d="M15,35 Q25,25 35,15" stroke="#AA0000" stroke-width="4"/>
+            </svg>
+        </div>
+    </div>`
+            for (let i = 0; i < document.getElementsByClassName("window").length; i++) {
+                dragElement(document.getElementsByClassName("window")[i]);
+                document.getElementsByClassName("window")[i].dataMaximized = false;
+            }
+        }
+        function createSettingsWindow() {
+            prevX += 20;
+            prevY += 20;
+            console.log(prevX);
+            console.log(prevY);
+            document.getElementById("main").innerHTML += `
+            <div class="window" id="` + getLengthWithoutDuplicate() + `settingswindow" style="position: absolute; top: ` + prevX + `px; left: ` + prevY + `px;" onpointermove="changeFocus(event, this);">
+        <div id="` + getLengthWithoutDuplicate() + `settingswindowbox" class="windowBar" style="display:grid; justify-content: right; align-items: center; grid-template-columns: repeat(3, 40px);">
+            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="maximizeWindow(this);">
+                <circle cx="25" cy="25" r="23" fill="#00ff00" stroke="#c0c0c0"/>
+                <rect x="15" y="15" width="20" height="20" fill="none" stroke="#00AA00" stroke-width="4"/>
+              </svg>
+            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="minimizeWindow(this)">
+                <circle cx="25" cy="25" r="23" fill="#FFFF00" stroke="#d0d0d0"/>
+                <line x1="15" y1="25" x2="35" y2="25" stroke="#AAAA00" stroke-width="4"/>
+            </svg>
+            <svg height="35" width="35" viewBox="0 0 50 50" style="cursor: pointer; opacity: 0.8;" class="windowButton" onclick="closeWindow(this);">
+                <circle cx="25" cy="25" r="23" fill="#FF0000" stroke="#d0d0d0"/>
+                <path d="M15,15 Q25,25 35,35" stroke="#AA0000" stroke-width="4"/>
+                <path d="M15,35 Q25,25 35,15" stroke="#AA0000" stroke-width="4"/>
+            </svg>
+        </div>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <h1>Settings</h1>
+        </div><br>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <label><input type="checkbox" onchange="useKeybinds = this.checked; console.log(useKeybinds)" ` + returnChecked() + `> Use Keybinds</label>
+        </div><br><br>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <button style="cursor: pointer;" onclick="if(document.fullscreenElement != null) {document.exitFullscreen()} else {document.documentElement.requestFullscreen();}">Enter Fullscreen For Most Immersion</button>
+        </div>
+    </div>`
+            for (let i = 0; i < document.getElementsByClassName("window").length; i++) {
+                dragElement(document.getElementsByClassName("window")[i]);
+                document.getElementsByClassName("window")[i].dataMaximized = false;
+            }
+        }
+        function returnChecked() {
+            if(useKeybinds) {
+                return "checked";
+            }
+            else {
+                return "";
+            }
+        }
+        function maximizeWindow(el) {
+            var window = el.parentElement.parentElement;
+            if(window.dataMaximized == false) {
+                window.style.animation = "maximize 1s linear forwards";
+                window.dataMaximized = true;
+            }
+            else {
+                window.style.animation = "";
+                window.dataMaximized = false;
+            }
+            console.log(window);
+        }
+        function minimizeWindow(el) {
+            var window = el.parentElement.parentElement;
+            console.log(window);
+            window.hidden = true;
+            var app = document.createElement("div");
+            document.getElementsByClassName("taskbar")[0].innerHTML += `<div style="width: 30px; height: 30px; background-color: lightgray; cursor: pointer;" onclick="restoreWindow('` + window.id + `', this)"></div>`;
+        }
+        function restoreWindow(id, caller) {
+            document.getElementById(id).hidden = false;
+            caller.remove();
+        }
+        function windowKeyPressed(e) {
+            if(useKeybinds) {
+                e.preventDefault(); e.stopPropagation();
+                if(e.altKey && e.key == "w") {
+                    e.preventDefault(); e.stopPropagation();
+                    closeWindow(focusedWindow.children[0].children[0]);
+                }
+                else if(e.altKey && e.key == "t") {
+                    e.preventDefault(); e.stopPropagation();
+                    createWindow();
+                }
+                else if(e.altKey && e.key == "-") {
+                    e.preventDefault(); e.stopPropagation();
+                    minimizeWindow(focusedWindow.children[0].children[0]);
+                }
+                else if(e.altKey && e.key == "=") {
+                    e.preventDefault(); e.stopPropagation();
+                    maximizeWindow(focusedWindow.children[0].children[0]);
+                }
+            }
+            console.log(e);
+
+        }
+    </script>
+    <script>
+        // Make the DIV element draggable:
+        for (let i = 0; i < document.getElementsByClassName("window").length; i++) {
+        dragElement(document.getElementsByClassName("window")[i]);
+        document.getElementsByClassName("window")[i].dataMaximized = false;
+}
+
+function dragElement(elmnt) {
+  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  if (document.getElementById(elmnt.id + "box")) {
+    // if present, the header is where you move the DIV from:
+    document.getElementById(elmnt.id + "box").onmousedown = dragMouseDown;
+  } else {
+    // otherwise, move the DIV from anywhere inside the DIV:
+    elmnt.onmousedown = dragMouseDown;
+  }
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // get the mouse cursor position at startup:
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    // call a function whenever the cursor moves:
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // calculate the new cursor position:
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    // set the element's new position:
+    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+  }
+
+  function closeDragElement() {
+  	// stop moving when mouse button is released:
+  	document.onmouseup = null; 
+  	document.onmousemove= null; 
+	}
+}
+    </script>
+</body>
+</html>
