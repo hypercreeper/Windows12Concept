@@ -230,6 +230,7 @@
                 document.getElementsByClassName("window")[i].dataMaximized = false;
             }
         }
+        var transparentTaskbar = false;
         function createSettingsWindow() {
             prevX += 20;
             prevY += 20;
@@ -260,6 +261,9 @@
         </div><br><br>
         <div style="display: flex; justify-content: center; align-items: center;">
             <button style="cursor: pointer;" onclick="if(document.fullscreenElement != null) {document.exitFullscreen()} else {document.documentElement.requestFullscreen();}">Enter Fullscreen For Most Immersion</button>
+        </div><br><br>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <label><input type="checkbox" onchange="if(this.checked) {document.getElementsByClassName('taskbar')[0].style.backgroundColor = 'rgba(255, 255, 255, 0)'} else {document.getElementsByClassName('taskbar')[0].style.backgroundColor = '';}"> Transparent Taskbar</label>
         </div>
     </div>`
             for (let i = 0; i < document.getElementsByClassName("window").length; i++) {
