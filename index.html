@@ -49,6 +49,7 @@
             justify-content: center;
             align-items: center;
             grid-template-columns: repeat(auto-fit, 40px);
+            z-index: 100;
         }
         .windowButton {
             transition-duration: 0.1s;
@@ -60,7 +61,50 @@
             transition-duration: 0s;
             filter: brightness(60%);
         }
-
+        .progressBar {
+            width: 250px;
+            height: 10px;
+            border-radius: 5px;
+            background-color: white;
+        }
+        .progress {
+            width: 0px;
+            height: 10px;
+            border-radius: 5px;
+            background-color: #FC466B;
+            transition: width 5s linear;
+        }
+        .powerMenuButton {
+            transition-duration: 0.4s;
+        }
+        .powerMenuButton:hover {
+            background-color: lightgray;
+            cursor: pointer;
+        }
+        .powerMenuButton:active {
+            background-color: transparent;
+            cursor: pointer;
+        }
+        @keyframes fadeout {
+            0% {
+                filter: brightness(100%);
+            }
+            100% {
+                filter: brightness(0%);
+            }
+        }
+        @keyframes fadeinInvisible {
+            0% {
+                filter: brightness(0%);
+            }
+            50% {
+                opacity: 0;
+            }
+            100% {
+                filter: brightness(100%);
+                opacity: 0;
+            }
+        }
         @keyframes maximize {
             0% {
             }
@@ -71,86 +115,264 @@
                 left: 0px;
             }
         }
+        @keyframes restore {
+            0% {
+                width: 100%;
+                height: calc(100% - 50px);
+                top: 0px;
+                left: 0px;
+            }
+            100% {
+                
+            }
+        }
+        @keyframes minimize {
+            0% {
+
+            }
+            100% {
+                transform: translate(50%, 500px) scale(0.2);
+            }
+        }
+        @keyframes unminimize {
+            0% {
+                transform: translate(50%, 500px) scale(0.2);
+            }
+            100% {
+                /* transform: translate(-50%, -500px) scale(1); */
+            }
+        }
+        @keyframes openWindow {
+            0% {
+                transform: scale(0.90);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        @keyframes closeWindow {
+            0% {
+                
+            }
+            100% {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+        }
+        @keyframes IconBounce {
+            0% {
+                
+            }
+            25% {
+                transform: translateY(5px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+            100% {
+                /* transform: translateY(2px); */
+            }
+        }
+        @keyframes movein {
+            0% {
+                
+            }
+            100% {
+                transform: translateY(-200px);
+            }
+        }
+        @keyframes moveout {
+            0% {
+                transform: translateY(-200px);
+            }
+            100% {
+                transform: translateY(200px);
+            }
+        }
     </style>
 </head>
-<script>var useKeybinds = true;</script>
+<script>var useKeybinds = true;
+var searchHandler = "https://www.bing.com/search?q=";
+</script>
 <body onkeydown="windowKeyPressed(event)">
     <div class="taskbar">
-        <div style="width: 30px; height: 30px; background-color: gray; cursor: pointer;" onclick="createWindow()"></div>
-        <div style="width: 30px; height: 30px; background-color: transparent; cursor: pointer;" onclick="createSettingsWindow()">
+        <div id="primaryWindowTaskbarButton" style="width: 30px; height: 30px;  cursor: pointer;" onclick="createWindow()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="gray" width="30px" height="30px" viewBox="0 0 30 30">
+                <rect x="0" y="0" width="30" height="30" fill="gray" stroke="gray" stroke-width="4"/>
+            </svg>
+        </div>
+        <div id="settingsWindowTaskbarButton" style="width: 30px; height: 30px; background-color: transparent; cursor: pointer;" onclick="createSettingsWindow()">
             <svg xmlns="http://www.w3.org/2000/svg" fill="gray" width="30px" height="30px" viewBox="0 0 1920 1920">
                 <path d="M1703.534 960c0-41.788-3.84-84.48-11.633-127.172l210.184-182.174-199.454-340.856-265.186 88.433c-66.974-55.567-143.323-99.389-223.85-128.415L1158.932 0h-397.78L706.49 269.704c-81.43 29.138-156.423 72.282-223.962 128.414l-265.073-88.32L18 650.654l210.184 182.174C220.39 875.52 216.55 918.212 216.55 960s3.84 84.48 11.633 127.172L18 1269.346l199.454 340.856 265.186-88.433c66.974 55.567 143.322 99.389 223.85 128.415L761.152 1920h397.779l54.663-269.704c81.318-29.138 156.424-72.282 223.963-128.414l265.073 88.433 199.454-340.856-210.184-182.174c7.793-42.805 11.633-85.497 11.633-127.285m-743.492 395.294c-217.976 0-395.294-177.318-395.294-395.294 0-217.976 177.318-395.294 395.294-395.294 217.977 0 395.294 177.318 395.294 395.294 0 217.976-177.317 395.294-395.294 395.294" fill-rule="evenodd"/>
             </svg>
         </div>
-    </div>
-    <div id="main">
-    <div class="window" id="0primarywindow" onpointermove="changeFocus(event, this);">
-        <div id="0primarywindowbox" class="windowBar" style="display:grid; justify-content: right; align-items: center; grid-template-columns: repeat(3, 40px);">
-            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="maximizeWindow(this);">
-                <circle cx="25" cy="25" r="23" fill="#00ff00" stroke="#c0c0c0"/>
-                <rect x="15" y="15" width="20" height="20" fill="none" stroke="#00AA00" stroke-width="4"/>
-              </svg>
-            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="minimizeWindow(this)">
-                <circle cx="25" cy="25" r="23" fill="#FFFF00" stroke="#d0d0d0"/>
-                <line x1="15" y1="25" x2="35" y2="25" stroke="#AAAA00" stroke-width="4"/>
-            </svg>
-            <svg height="35" width="35" viewBox="0 0 50 50" style="cursor: pointer; opacity: 0.8;" class="windowButton" onclick="closeWindow(this);">
-                <circle cx="25" cy="25" r="23" fill="#FF0000" stroke="#d0d0d0"/>
-                <path d="M15,15 Q25,25 35,35" stroke="#AA0000" stroke-width="4"/>
-                <path d="M15,35 Q25,25 35,15" stroke="#AA0000" stroke-width="4"/>
-            </svg>
-        </div>    
-          
-    </div>
-    <div class="window" id="1primarywindow" onpointermove="changeFocus(event, this);">
-        <div id="1primarywindowbox" class="windowBar" style="display:grid; justify-content: right; align-items: center; grid-template-columns: repeat(3, 40px);">
-            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="maximizeWindow(this);">
-                <circle cx="25" cy="25" r="23" fill="#00ff00" stroke="#c0c0c0"/>
-                <rect x="15" y="15" width="20" height="20" fill="none" stroke="#00AA00" stroke-width="4"/>
-              </svg>
-            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="minimizeWindow(this)">
-                <circle cx="25" cy="25" r="23" fill="#FFFF00" stroke="#d0d0d0"/>
-                <line x1="15" y1="25" x2="35" y2="25" stroke="#AAAA00" stroke-width="4"/>
-            </svg>
-            <svg height="35" width="35" viewBox="0 0 50 50" style="cursor: pointer; opacity: 0.8;" class="windowButton" onclick="closeWindow(this);">
-                <circle cx="25" cy="25" r="23" fill="#FF0000" stroke="#d0d0d0"/>
-                <path d="M15,15 Q25,25 35,35" stroke="#AA0000" stroke-width="4"/>
-                <path d="M15,35 Q25,25 35,15" stroke="#AA0000" stroke-width="4"/>
+        <div id="browserWindowTaskbarButton" style="width: 37px; height: 37px; background-color: transparent; cursor: pointer;" onclick="createBrowserWindow()">
+            <svg width="35px" height="35px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="gray" stroke-width="2"/>
+                <path d="M12 3.05554C14.455 5.25282 16 8.44597 16 12C16 15.554 14.455 18.7471 12 20.9444" stroke="gray" stroke-width="2" stroke-linecap="round"/>
+                <path d="M12.0625 21C9.57126 18.8012 8 15.5841 8 12C8 8.41592 9.57126 5.19883 12.0625 3" stroke="gray" stroke-width="2" stroke-linecap="round"/>
+                <path d="M3 12H21" stroke="gray" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         </div>
-        <svg height="100" width="100" xmlns="http://www.w3.org/2000/svg">
-            <rect x="10" y="10" width="80" height="80" fill="#00a0d2"/>
-            <circle cx="50" cy="50" r="30" fill="#ffffff"/>
-            <path d="M50 20 A30 30 0 0 1 80 50 L50 50 Z" fill="#00a0d2"/>
-          </svg>
-    </div>
-    <div class="window" id="2primarywindow" onpointermove="changeFocus(event, this);">
-        <div id="2primarywindowbox" class="windowBar" style="display:grid; justify-content: right; align-items: center; grid-template-columns: repeat(3, 40px);">
-            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="maximizeWindow(this);">
-                <circle cx="25" cy="25" r="23" fill="#00ff00" stroke="#c0c0c0"/>
-                <rect x="15" y="15" width="20" height="20" fill="none" stroke="#00AA00" stroke-width="4"/>
-              </svg>
-            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="minimizeWindow(this)">
-                <circle cx="25" cy="25" r="23" fill="#FFFF00" stroke="#d0d0d0"/>
-                <line x1="15" y1="25" x2="35" y2="25" stroke="#AAAA00" stroke-width="4"/>
-            </svg>
-            <svg height="35" width="35" viewBox="0 0 50 50" style="cursor: pointer; opacity: 0.8;" class="windowButton" onclick="closeWindow(this);">
-                <circle cx="25" cy="25" r="23" fill="#FF0000" stroke="#d0d0d0"/>
-                <path d="M15,15 Q25,25 35,35" stroke="#AA0000" stroke-width="4"/>
-                <path d="M15,35 Q25,25 35,15" stroke="#AA0000" stroke-width="4"/>
+        <div id="powerWindowTaskbarButton" style="width: 37px; height: 37px; background-color: transparent; cursor: pointer;" onclick="openPowerMenu()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="30px" height="30px" viewBox="0 0 20 20" fill="none">
+                <path d="M8 7.52771C6.7725 8.62635 6 10.2229 6 11.9999C6 15.3136 8.68629 17.9999 12 17.9999C15.3137 17.9999 18 15.3136 18 11.9999C18 10.2229 17.2275 8.62635 16 7.52771" stroke="gray" stroke-width="2" stroke-linecap="round"/>
+                <path d="M12 6V13" stroke="gray" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         </div>
-
     </div>
-</div>
+    <div id="powerMenu" style="position: fixed; top: 100%; left: calc(50% - 50px); min-height: 150px; width: 200px; background-color: rgba(255, 255, 255, 0.5); border-radius: 5px; box-shadow: rgba(128, 128, 128, 0.5) 0px 0px 5px 1px; z-index: 10; backdrop-filter: blur(3px);">
+        <div class="powerMenuButton" onclick="restartOS()" style="width: 100%; height: 75px; border-radius: 5px; display: grid; justify-content: left; align-items: center; grid-template-columns: repeat(2, 40px);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40px" height="40px" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2.99988C16.9706 2.99988 21 7.02931 21 11.9999C21 16.9704 16.9706 20.9999 12 20.9999C7.02944 20.9999 3 16.9704 3 11.9999C3 9.17261 4.30367 6.64983 6.34267 4.99988" stroke="#292929" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                <path d="M3 4.49988H7V8.49988" stroke="#292929" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+            </svg>
+            <span style="margin-left: 10px;">Restart</span>
+        </div>
+        <div class="powerMenuButton" onclick="shutdownOS()" style="width: 100%; height: 75px; border-radius: 5px; display: grid; justify-content: left; align-items: center; grid-template-columns: repeat(2, 40px);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40px" height="40px" viewBox="0 0 20 20" fill="none">
+                <path d="M8 7.52771C6.7725 8.62635 6 10.2229 6 11.9999C6 15.3136 8.68629 17.9999 12 17.9999C15.3137 17.9999 18 15.3136 18 11.9999C18 10.2229 17.2275 8.62635 16 7.52771" stroke="#292929" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M12 6V13" stroke="#292929" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span style="margin-left: 10px;">Shutdown</span>
+        </div>
+        
+    </div>
+    <div id="main"></div>
+    <div id="loadingScreen" hidden style="background-image: linear-gradient(135deg, #FC466B, #3F5EFB); position: fixed; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 1001; display: grid; justify-content: center; align-items: center;"><div class="progressBar"><div class="progress"></div></div></div>
     <script>
+        function shutdownOS() {
+            document.getElementById("loadingScreen").hidden = false;
+            document.getElementsByClassName('progress')[0].hidden = true;
+            document.getElementsByClassName('progressBar')[0].hidden = true;
+            document.getElementById("loadingScreen").style.width = "100%";
+            document.getElementById("loadingScreen").style.animation = "fadeout 1s linear forwards";
+        }
+        function restartOS() {
+            document.getElementById("loadingScreen").hidden = false;
+            document.getElementsByClassName('progress')[0].hidden = true;
+            document.getElementsByClassName('progressBar')[0].hidden = true;
+            document.getElementById("loadingScreen").style.width = "100%";
+            document.getElementById("loadingScreen").style.animation = "fadeout 1s linear forwards";
+            setTimeout(function() {
+                location.reload();
+            }, 2000);
+        }
+        function loadOS() {
+            setTimeout(function() {
+            document.getElementsByClassName('progress')[0].style.width = '250px';
+        });
+        setTimeout(function() {
+            document.getElementById("loadingScreen").style.animation = "fadeout 1s linear forwards";
+            setTimeout(function() {
+                document.getElementById("loadingScreen").style.animation = "fadeinInvisible 1s linear forwards";
+                setTimeout(function() {
+                    document.getElementById("loadingScreen").hidden = true;
+                    document.getElementById("loadingScreen").style.width = "0px";
+                }, 1000);
+            }, 1500);
+        }, 5500);
+        }
+        loadOS();
         var focusedWindow = document.getElementsByClassName("window")[document.getElementsByClassName("window").length-1];
+        var openWindows = [];
+        // setInterval(function() {
+        //     for (let i = 0; i < document.getElementsByClassName("window").length; i++) {
+        //         var element = document.getElementsByClassName("window")[i];
+        //         if(element.id.includes("browser")) {
+        //             var opendot = document.createElement("div");
+        //             var dotcontainer = document.createElement("div");
+        //             opendot.style.height = "5px";
+        //             opendot.style.width = "10px";
+        //             opendot.style.backgroundColor = "red";
+        //             dotcontainer.style = "display: grid; justify-content: center; align-items: center;";
+        //             dotcontainer.appendChild(opendot);
+        //             document.getElementById("browserWindowTaskbarButton").appendChild(dotcontainer);
+        //             // console.log("Browser Opened");
+        //         }
+        //         if(element.id.includes("settings")) {
+        //             document.getElementById("settingsWindowTaskbarButton").style.animation = "IconBounce 2s linear";
+        //             var opendot = document.createElement("div");
+        //             var dotcontainer = document.createElement("div");
+        //             opendot.style.height = "5px";
+        //             opendot.style.width = "10px";
+        //             opendot.style.backgroundColor = "red";
+        //             dotcontainer.style = "display: grid; justify-content: center; align-items: center;";
+        //             dotcontainer.appendChild(opendot);
+        //             document.getElementById("settingsWindowTaskbarButton").appendChild(dotcontainer);
+        //             // console.log("Settings opened");
+        //         }
+        //         if(element.id.includes("primary")) {
+        //             document.getElementById("primaryWindowTaskbarButton").style.animation = "IconBounce 2s linear";
+        //             var opendot = document.createElement("div");
+        //             var dotcontainer = document.createElement("div");
+        //             opendot.style.height = "5px";
+        //             opendot.style.width = "10px";
+        //             opendot.style.backgroundColor = "red";
+        //             dotcontainer.style = "display: grid; justify-content: center; align-items: center;";
+        //             dotcontainer.appendChild(opendot);
+        //             document.getElementById("primaryWindowTaskbarButton").appendChild(dotcontainer);
+        //             // console.log("primary opened");
+        //         }
+        //     }
+        // }, 1);
+        // setInterval(function() {
+        //     for (let i = 0; i < document.getElementsByClassName("window").length; i++) {
+        //         var element = document.getElementsByClassName("window")[i];
+        //         if(!element.id.includes("browser") && element.id.includes("settings") || element.id.includes("primary")) {
+        //             for (let j = 0; j < document.getElementById("browserWindowTaskbarButton").children.length; j++) {
+        //                 var tempelement = document.getElementById("browserWindowTaskbarButton").children[j];
+        //                 if(j != 0) {
+        //                     tempelement.remove();
+        //                     // console.log("Browser Closed");
+        //                 }
+        //             }
+        //         }
+        //         else if(!element.id.includes("settings") && element.id.includes("browser") || element.id.includes("primary")) {
+        //             for (let j = 0; j < document.getElementById("settingsWindowTaskbarButton").children.length; j++) {
+        //                 var tempelement = document.getElementById("settingsWindowTaskbarButton").children[j];
+        //                 if(j != 0) {
+        //                     tempelement.remove();
+        //                     // console.log("Settings Closed");
+        //                 }
+        //             }
+        //         }
+        //         else if(!element.id.includes("primary") && element.id.includes("browser") || element.id.includes("settings")) {
+        //             for (let j = 0; j < document.getElementById("primaryWindowTaskbarButton").children.length; j++) {
+        //                 var tempelement = document.getElementById("primaryWindowTaskbarButton").children[j];
+        //                 if(j != 0) {
+        //                     tempelement.remove();
+        //                     // console.log("Primary Closed");
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }, 1);
+        function arraymove(arr, fromIndex, toIndex) {
+            var element = arr[fromIndex];
+            arr.splice(fromIndex, 1);
+            arr.splice(toIndex, 0, element);
+        }
+        function findIndexFromString(arr, string) {
+            for(var i = 0; i < arr.length; i++) {
+                if(arr[i] == string) {
+                    return i;
+                }
+            }
+        }
         function changeFocus(event, window) {
-            if(event.buttons == 1 && isMouseAtCorner(event, window).atCorner != true) {
-                    var tempEl = window;
-                    window.remove();
-                    document.getElementById("main").appendChild(tempEl);
-                    focusedWindow = tempEl;
+            if(event.buttons == 1 && isMouseAtCorner(event, window).atCorner != true && event.srcElement.id.includes("windowbox") && event.srcElement.parentElement.dataMaximized == false) {
+                var tempEl = window;
+                document.getElementById("main").appendChild(tempEl);
+                focusedWindow = tempEl;
+                var temparray = [];
+                for(var i = 0; i<document.getElementById("main").children.length; i++) {
+                    temparray.push(document.getElementById("main").children[i]);
+                }
+                arraymove(temparray, findIndexFromString(document.getElementById("main").children, tempEl), document.getElementById("main").children.length-1);
+                console.log(temparray);
             }
         }
         function isMouseAtCorner(event, element) {
@@ -188,8 +410,12 @@
                 return {atCorner: false, which: null, x: x, y: y, width: w, height: h};
             }
         }
-            function closeWindow(window) {
-            window.parentElement.parentElement.remove();
+        function closeWindow(el) {
+            var window = el.parentElement.parentElement;
+            window.style.animation = "closeWindow 0.1s linear forwards"
+            setTimeout(function() {
+                window.remove();
+            }, 110);
             focusedWindow = document.getElementsByClassName("window")[document.getElementsByClassName("window").length-1];
         }
         var prevX = 0;
@@ -203,12 +429,16 @@
             }
         }
         function createWindow() {
+            document.getElementById("primaryWindowTaskbarButton").style.animation = "IconBounce 0.7s ease-in-out";
+            setTimeout(() => {
+                document.getElementById("primaryWindowTaskbarButton").style.animation = "";
+            }, 800);
             prevX += 20;
             prevY += 20;
             console.log(prevX);
             console.log(prevY);
             document.getElementById("main").innerHTML += `
-            <div class="window" id="` + getLengthWithoutDuplicate() + `primarywindow" style="position: absolute; top: ` + prevX + `px; left: ` + prevY + `px;" onpointermove="changeFocus(event, this);">
+            <div class="window" id="` + getLengthWithoutDuplicate() + `primarywindow" style="position: absolute; top: ` + prevX + `px; left: ` + prevY + `px; animation: openWindow 0.1s linear forwards;" onpointermove="changeFocus(event, this);">
         <div id="` + getLengthWithoutDuplicate() + `primarywindowbox" class="windowBar" style="display:grid; justify-content: right; align-items: center; grid-template-columns: repeat(3, 40px);">
             <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="maximizeWindow(this);">
                 <circle cx="25" cy="25" r="23" fill="#00ff00" stroke="#c0c0c0"/>
@@ -228,16 +458,24 @@
             for (let i = 0; i < document.getElementsByClassName("window").length; i++) {
                 dragElement(document.getElementsByClassName("window")[i]);
                 document.getElementsByClassName("window")[i].dataMaximized = false;
+                setTimeout(function() {
+                    document.getElementsByClassName("window")[i].style.animation = "";
+                }, 110);
             }
+            focusedWindow = document.getElementsByClassName("window")[document.getElementsByClassName("window").length-1];
         }
         var transparentTaskbar = false;
         function createSettingsWindow() {
+            document.getElementById("settingsWindowTaskbarButton").style.animation = "IconBounce 0.7s ease-in-out";
+            setTimeout(() => {
+                document.getElementById("settingsWindowTaskbarButton").style.animation = "";
+            }, 800);
             prevX += 20;
             prevY += 20;
             console.log(prevX);
             console.log(prevY);
             document.getElementById("main").innerHTML += `
-            <div class="window" id="` + getLengthWithoutDuplicate() + `settingswindow" style="position: absolute; top: ` + prevX + `px; left: ` + prevY + `px;" onpointermove="changeFocus(event, this);">
+            <div class="window" id="` + getLengthWithoutDuplicate() + `settingswindow" style="position: absolute; top: ` + prevX + `px; left: ` + prevY + `px; animation: openWindow 0.1s linear forwards;" onpointermove="changeFocus(event, this);">
         <div id="` + getLengthWithoutDuplicate() + `settingswindowbox" class="windowBar" style="display:grid; justify-content: right; align-items: center; grid-template-columns: repeat(3, 40px);">
             <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="maximizeWindow(this);">
                 <circle cx="25" cy="25" r="23" fill="#00ff00" stroke="#c0c0c0"/>
@@ -264,12 +502,65 @@
         </div><br><br>
         <div style="display: flex; justify-content: center; align-items: center;">
             <label><input type="checkbox" onchange="if(this.checked) {document.getElementsByClassName('taskbar')[0].style.backgroundColor = 'rgba(255, 255, 255, 0)'} else {document.getElementsByClassName('taskbar')[0].style.backgroundColor = '';}"> Transparent Taskbar</label>
+        </div><br>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <select onchange="if(this.value == 'bottom') {document.getElementsByClassName('taskbar')[0].style.width = '100%'; document.getElementsByClassName('taskbar')[0].style.height = '50px'; document.getElementsByClassName('taskbar')[0].style.top = 'calc(100% - 50px)'; document.getElementsByClassName('taskbar')[0].style.left = '0px';} else if(this.value == 'top') {document.getElementsByClassName('taskbar')[0].style.width = '100%'; document.getElementsByClassName('taskbar')[0].style.height = '50px'; document.getElementsByClassName('taskbar')[0].style.top = '0px'; document.getElementsByClassName('taskbar')[0].style.left = '0px';} else if(this.value == 'left') {document.getElementsByClassName('taskbar')[0].style.width = '50px'; document.getElementsByClassName('taskbar')[0].style.height = '100%'; document.getElementsByClassName('taskbar')[0].style.top = '0px'; document.getElementsByClassName('taskbar')[0].style.left = '0px';} else if(this.value == 'right') {document.getElementsByClassName('taskbar')[0].style.width = '50px'; document.getElementsByClassName('taskbar')[0].style.height = '100%'; document.getElementsByClassName('taskbar')[0].style.top = '0px'; document.getElementsByClassName('taskbar')[0].style.left = 'calc(100% - 50px)';}">
+                <option value="bottom">Bottom</option>
+                <option value="top">Top</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+            </select>
         </div>
     </div>`
             for (let i = 0; i < document.getElementsByClassName("window").length; i++) {
                 dragElement(document.getElementsByClassName("window")[i]);
                 document.getElementsByClassName("window")[i].dataMaximized = false;
+                setTimeout(function() {
+                    document.getElementsByClassName("window")[i].style.animation = "";
+                }, 110);
             }
+            focusedWindow = document.getElementsByClassName("window")[document.getElementsByClassName("window").length-1];
+        }
+        function createBrowserWindow() {
+            document.getElementById("browserWindowTaskbarButton").style.animation = "IconBounce 0.7s ease-in-out";
+            setTimeout(() => {
+                document.getElementById("browserWindowTaskbarButton").style.animation = "";
+            }, 800);
+            prevX += 20;
+            prevY += 20;
+            console.log(prevX);
+            console.log(prevY);
+            document.getElementById("main").innerHTML += `
+            <div class="window" id="` + getLengthWithoutDuplicate() + `browserwindow" onpointermove="changeFocus(event, this);" style="position: absolute; top: ` + prevX + `px; left: ` + prevY + `px; animation: openWindow 0.1s linear forwards;">
+        <div id="` + getLengthWithoutDuplicate() + `browserwindowbox" class="windowBar" style="display:grid; justify-content: right; align-items: center; grid-template-columns: repeat(3, 40px);">
+            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="maximizeWindow(this);">
+                <circle cx="25" cy="25" r="23" fill="#00ff00" stroke="#c0c0c0"/>
+                <rect x="15" y="15" width="20" height="20" fill="none" stroke="#00AA00" stroke-width="4"/>
+              </svg>
+            <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="minimizeWindow(this)">
+                <circle cx="25" cy="25" r="23" fill="#FFFF00" stroke="#d0d0d0"/>
+                <line x1="15" y1="25" x2="35" y2="25" stroke="#AAAA00" stroke-width="4"/>
+            </svg>
+            <svg height="35" width="35" viewBox="0 0 50 50" style="cursor: pointer; opacity: 0.8;" class="windowButton" onclick="closeWindow(this);">
+                <circle cx="25" cy="25" r="23" fill="#FF0000" stroke="#d0d0d0"/>
+                <path d="M15,15 Q25,25 35,35" stroke="#AA0000" stroke-width="4"/>
+                <path d="M15,35 Q25,25 35,15" stroke="#AA0000" stroke-width="4"/>
+            </svg>
+        </div>
+        <button onclick="history.back();">Back</button>
+        <button onclick="history.forward();">Forward</button>
+        <button onclick="document.getElementById('BrowserWindow').src = document.getElementById('BrowserWindow').src;">Reload</button>
+        <input type="text" style="width: 70%;" onkeypress="if(event.key == 'Enter' && !this.value.includes(' ') && this.value.includes('://')) {document.getElementById('BrowserWindow').src = this.value;} else if(event.key == 'Enter' && !this.value.includes('://')) {document.getElementById('BrowserWindow').src = searchHandler + this.value.replace(' ', '+');}" id="urlBox">
+        <iframe style="height: 100%; width: 100%;" id="BrowserWindow" onchange="document.getElementById('urlBox').value = this.src;"></iframe>
+    </div>`;
+            for (let i = 0; i < document.getElementsByClassName("window").length; i++) {
+                dragElement(document.getElementsByClassName("window")[i]);
+                document.getElementsByClassName("window")[i].dataMaximized = false;
+                setTimeout(function() {
+                    document.getElementsByClassName("window")[i].style.animation = "";
+                }, 110);
+            }
+            focusedWindow = document.getElementsByClassName("window")[document.getElementsByClassName("window").length-1];
         }
         function returnChecked() {
             if(useKeybinds) {
@@ -279,14 +570,42 @@
                 return "";
             }
         }
+        function openPowerMenu() {
+            document.getElementById("powerWindowTaskbarButton").style.animation = "IconBounce 0.7s ease-in-out";
+            setTimeout(() => {
+                document.getElementById("powerWindowTaskbarButton").style.animation = "";
+            }, 800);
+            if(document.getElementById("powerMenu").style.animation.includes("movein")) {
+                document.getElementById("powerMenu").style.animation = "moveout 0.1s linear forwards";
+            }
+            else {
+                document.getElementById("powerMenu").style.animation = "movein 0.1s linear forwards";
+            }
+        }
+        var windowData = {};
         function maximizeWindow(el) {
             var window = el.parentElement.parentElement;
             if(window.dataMaximized == false) {
-                window.style.animation = "maximize 1s linear forwards";
+                windowData[window.id] = {};
+                windowData[window.id]["height"] = window.getBoundingClientRect().height;
+                windowData[window.id]["width"] = window.getBoundingClientRect().width;
+                console.log(windowData);
+                window.style.animation = "maximize 0.5s linear forwards";
+                window.style.width = window.getBoundingClientRect().width + "px";
+                window.style.height = window.getBoundingClientRect().height + "px";
+                setTimeout(function() {
+                    window.style.height = "calc(100% - 50px)";
+                    window.style.width = "100%";
+                }, 1000);
                 window.dataMaximized = true;
             }
             else {
-                window.style.animation = "";
+                window.style.animation = "restore 0.5s linear forwards";
+                window.style.height = windowData[window.id]["height"] + "px";
+                window.style.width = windowData[window.id]["width"] + "px";
+                setTimeout(function() {
+                    window.style.animation = "";
+                }, 1000);
                 window.dataMaximized = false;
             }
             console.log(window);
@@ -294,24 +613,31 @@
         function minimizeWindow(el) {
             var window = el.parentElement.parentElement;
             console.log(window);
-            window.hidden = true;
+            window.style.animation = "minimize 0.2s linear forwards";
+            setTimeout(function() {
+                window.hidden = true;
+            }, 260);
             var app = document.createElement("div");
             document.getElementsByClassName("taskbar")[0].innerHTML += `<div style="width: 30px; height: 30px; background-color: lightgray; cursor: pointer;" onclick="restoreWindow('` + window.id + `', this)"></div>`;
         }
         function restoreWindow(id, caller) {
             document.getElementById(id).hidden = false;
+            document.getElementById(id).style.animation = "unminimize 0.2s linear forwards";
+            setTimeout(function() {
+                document.getElementById(id).style.animation = "";
+            }, 260);
             caller.remove();
         }
         function windowKeyPressed(e) {
             if(useKeybinds) {
-                e.preventDefault(); e.stopPropagation();
+                // e.preventDefault(); e.stopPropagation();
                 if(e.altKey && e.key == "w") {
                     e.preventDefault(); e.stopPropagation();
                     closeWindow(focusedWindow.children[0].children[0]);
                 }
                 else if(e.altKey && e.key == "t") {
                     e.preventDefault(); e.stopPropagation();
-                    createWindow();
+                    createBrowserWindow();
                 }
                 else if(e.altKey && e.key == "-") {
                     e.preventDefault(); e.stopPropagation();
@@ -351,7 +677,9 @@ function dragElement(elmnt) {
     pos4 = e.clientY;
     document.onmouseup = closeDragElement;
     // call a function whenever the cursor moves:
-    document.onmousemove = elementDrag;
+    if(!elmnt.dataMaximized) {
+        document.onmousemove = elementDrag;
+    }
   }
 
   function elementDrag(e) {
@@ -363,8 +691,10 @@ function dragElement(elmnt) {
     pos3 = e.clientX;
     pos4 = e.clientY;
     // set the element's new position:
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    if(!elmnt.dataMaximized) {
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
   }
 
   function closeDragElement() {
