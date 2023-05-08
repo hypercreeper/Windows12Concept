@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Lumina OS Model</title>
+    <script src="vfs.js"></script>
+    <script>
+      var debugmode =
+        localStorage.getItem("debugMode") == "false" ? false : true;
+      // const vfs = new VFS();
+    </script>
+    <style>
+      /* The switch - the box around the slider */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 24px;
+      }
+
+      /* Hide default HTML checkbox */
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      /* The slider */
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: 0.2s;
+        transition: 0.2s;
+        border-radius: 34px;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: 0.2s;
+        transition: 0.2s;
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background-color: #2196f3;
+      }
+
+      input:focus + .slider {
+        box-shadow: 0 0 1px #2196f3;
+      }
+
+      input:checked + .slider:before {
+        -webkit-transform: translateX(16px);
+        -ms-transform: translateX(16px);
+        transform: translateX(16px);
+      }
+
+      body {
+        background-image: linear-gradient(110deg, #fc466b, #3f5efb);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+          sans-serif;
+        overflow: hidden;
+      }
+      .window {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        min-height: 400px;
+        min-width: 600px;
+        background-color: rgba(201, 201, 201, 0.7);
+        border-radius: 5px;
+        box-shadow: rgba(128, 128, 128, 0.5) 0px 0px 5px 1px;
+        z-index: 1;
+        backdrop-filter: blur(3px);
+        overflow: hidden;
+        resize: both;
+      }
+      .windowBar {
+        position: relative;
+        width: 100%;
+        height: 50px;
+        background-color: rgba(255, 255, 255 0.5);
+        border-bottom: rgba(255, 255, 255, 0.2) 1px solid;
+        border-radius: 5px;
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+        z-index: 2;
+        cursor: move;
+      }
+      .taskbar {
+        position: fixed;
+        width: calc(100% - 10px);
+        height: 50px;
+        background-color: rgba(255, 255, 255, 0.5);
+        /* border-top: black 1px solid; */
+        border-radius: 2px;
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+        z-index: 3;
+        top: calc(100% - 55px);
+        left: 5px;
+        display: grid;
+        justify-content: center;
+        align-items: center;
+        grid-template-columns: repeat(auto-fit, 40px);
+        z-index: 100;
+        backdrop-filter: blur(5px);
+      }
+      .statusbar {
+        position: fixed;
+        width: 100%;
+        height: 20px;
+        background-color: rgba(255, 255, 255, 0.5);
+        top: 0px;
+        left: 0px;
+        z-index: 100;
+        backdrop-filter: blur(5px);
+      }
+      .windowButton {
+        transition-duration: 0.1s;
+      }
+      .windowButton:hover {
+        filter: brightness(80%);
+      }
+      .windowButton:active {
+        transition-duration: 0s;
+        filter: brightness(60%);
+      }
+      .progressBar {
+        width: 250px;
+        height: 10px;
+        border-radius: 5px;
+        background-color: white;
+      }
+      .progress {
+        width: 0px;
+        height: 10px;
+        border-radius: 5px;
+        background-color: #fc466b;
+        transition: width 5s linear;
+      }
+      .powerMenuButton {
+        transition-duration: 0.4s;
+      }
+      .powerMenuButton:hover {
+        background-color: lightgray;
+        cursor: pointer;
+      }
+      .powerMenuButton:active {
+        background-color: transparent;
+        cursor: pointer;
+      }
+      .dropzone {
+        border-radius: 10px;
+        background-color: rgba(201, 201, 201, 0.7);
+        backdrop-filter: blur(5px);
+      }
+      .selectedoption {
+        background-color: rgba(201, 201, 201, 0.7);
+      }
+      @keyframes fadeout {
+        0% {
+          filter: brightness(100%);
+        }
+        100% {
+          filter: brightness(0%);
+        }
+      }
+      @keyframes fadeinInvisible {
+        0% {
+          filter: brightness(0%);
+        }
+        50% {
+          opacity: 0;
+        }
+        100% {
+          filter: brightness(100%);
+          opacity: 0;
+        }
+      }
+      @keyframes maximize {
+        0% {
+        }
+        100% {
+          width: 100%;
+          height: calc(100% - 50px);
+          top: 0px;
+          left: 0px;
+        }
+      }
+      @keyframes restore {
+        0% {
+          width: 100%;
+          height: calc(100% - 50px);
+          top: 0px;
+          left: 0px;
+        }
+        100% {
+        }
+      }
+      @keyframes minimize {
+        0% {
+        }
+        100% {
+          transform: translate(50%, 500px) scale(0.2);
+        }
+      }
+      @keyframes unminimize {
+        0% {
+          transform: translate(50%, 500px) scale(0.2);
+        }
+        100% {
+          /* transform: translate(-50%, -500px) scale(1); */
+        }
+      }
+      @keyframes openWindow {
+        0% {
+          transform: scale(0.9);
+          opacity: 0;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      @keyframes closeWindow {
+        0% {
+        }
+        100% {
+          transform: scale(0.9);
+          opacity: 0;
+        }
+      }
+      @keyframes IconBounce {
+        0% {
+        }
+        25% {
+          transform: translateY(5px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          /* transform: translateY(2px); */
+        }
+      }
+      @keyframes movein {
+        0% {
+        }
+        100% {
+          transform: translateY(-200px);
+        }
+      }
+      @keyframes moveout {
+        0% {
+          transform: translateY(-200px);
+        }
+        100% {
+          transform: translateY(200px);
+        }
+      }
+    </style>
+  </head>
+  <script>
+    var useKeybinds = true;
+    var searchHandler = "https://www.bing.com/search?q=";
+  </script>
+  <body onkeydown="windowKeyPressed(event)">
+    <div class="statusbar">
+      <div style="float: left;">left</div>
+      <div style="float: right;">
+        <div>
+          <span id="batstr"></span>
+          <img src="battery.svg" style="height: 19px; aspect-ratio: 1/1;">
+          <script>
+            setInterval(function() {
+              navigator.getBattery().then(val => {document.getElementById("batstr").innerText = val.level*100 + '%';});
+            }, 100);
+          </script>
+        </div>
+      </div>
+    </div>
+    <div class="taskbar">
+      <div
+        id="primaryWindowTaskbarButton"
+        style="width: 30px; height: 30px; cursor: pointer"
+        onclick="createEmptyWindow()"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="#2f2f2f"
+          width="30px"
+          height="30px"
+          viewBox="0 0 30 30"
+        >
+          <rect
+            x="0"
+            y="0"
+            width="30"
+            height="30"
+            fill="#2f2f2f"
+            stroke="#2f2f2f"
+            stroke-width="4"
+          />
+        </svg>
+      </div>
+      <div
+        id="settingsWindowTaskbarButton"
+        style="
+          width: 30px;
+          height: 30px;
+          background-color: transparent;
+          cursor: pointer;
+        "
+        onclick="createSettingsWindow()"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="#2f2f2f"
+          width="30px"
+          height="30px"
+          viewBox="0 0 1920 1920"
+        >
+          <path
+            d="M1703.534 960c0-41.788-3.84-84.48-11.633-127.172l210.184-182.174-199.454-340.856-265.186 88.433c-66.974-55.567-143.323-99.389-223.85-128.415L1158.932 0h-397.78L706.49 269.704c-81.43 29.138-156.423 72.282-223.962 128.414l-265.073-88.32L18 650.654l210.184 182.174C220.39 875.52 216.55 918.212 216.55 960s3.84 84.48 11.633 127.172L18 1269.346l199.454 340.856 265.186-88.433c66.974 55.567 143.322 99.389 223.85 128.415L761.152 1920h397.779l54.663-269.704c81.318-29.138 156.424-72.282 223.963-128.414l265.073 88.433 199.454-340.856-210.184-182.174c7.793-42.805 11.633-85.497 11.633-127.285m-743.492 395.294c-217.976 0-395.294-177.318-395.294-395.294 0-217.976 177.318-395.294 395.294-395.294 217.977 0 395.294 177.318 395.294 395.294 0 217.976-177.317 395.294-395.294 395.294"
+            fill-rule="evenodd"
+          />
+        </svg>
+      </div>
+      <div
+        id="browserWindowTaskbarButton"
+        style="
+          width: 37px;
+          height: 37px;
+          background-color: transparent;
+          cursor: pointer;
+        "
+        onclick="createBrowserWindow()"
+      >
+        <svg
+          width="35px"
+          height="35px"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+            stroke="#2f2f2f"
+            stroke-width="2"
+          />
+          <path
+            d="M12 3.05554C14.455 5.25282 16 8.44597 16 12C16 15.554 14.455 18.7471 12 20.9444"
+            stroke="#2f2f2f"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <path
+            d="M12.0625 21C9.57126 18.8012 8 15.5841 8 12C8 8.41592 9.57126 5.19883 12.0625 3"
+            stroke="#2f2f2f"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 12H21"
+            stroke="#2f2f2f"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+      <div
+        id="powerWindowTaskbarButton"
+        style="
+          width: 37px;
+          height: 37px;
+          background-color: transparent;
+          cursor: pointer;
+        "
+        onclick="openPowerMenu()"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="30px"
+          height="30px"
+          viewBox="0 0 20 20"
+          fill="none"
+        >
+          <path
+            d="M8 7.52771C6.7725 8.62635 6 10.2229 6 11.9999C6 15.3136 8.68629 17.9999 12 17.9999C15.3137 17.9999 18 15.3136 18 11.9999C18 10.2229 17.2275 8.62635 16 7.52771"
+            stroke="#2f2f2f"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <path
+            d="M12 6V13"
+            stroke="#2f2f2f"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+    </div>
+    <div id="main" style="z-index: 2">
+    
+    
+    <div class="window" id="0primarywindow" style="position: absolute; top: 20px; left: 20px; animation: openWindow 0.1s linear forwards; width: 700px; height: 500px;" onpointermove="changeFocus(event, this);">
+            <div id="0primarywindowbox" class="windowBar" style="display:flex; justify-content: center; align-items: center;">
+              <div style="width: 100%;">
+                <h2 style="margin-left: 10px;">App Title - <span style='font-weight: normal;'>Subtitle</span></h2>
+              </div>
+              <div style="display: flex; justify-content: right; margin-right: 10px">
+                <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="maximizeWindow(this.parentElement);">
+                  <circle cx="25" cy="25" r="23" fill="#00ff00" stroke="#c0c0c0"/>
+                  <rect x="15" y="15" width="20" height="20" fill="none" stroke="#00AA00" stroke-width="4"/>
+                </svg>
+                <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="minimizeWindow(this.parentElement)">
+                  <circle cx="25" cy="25" r="23" fill="#FFFF00" stroke="#d0d0d0"/>
+                  <line x1="15" y1="25" x2="35" y2="25" stroke="#AAAA00" stroke-width="4"/>
+                </svg>
+                <svg height="35" width="35" viewBox="0 0 50 50" style="cursor: pointer; opacity: 0.8;" class="windowButton" onclick="closeWindow(this.parentElement);">
+                  <circle cx="25" cy="25" r="23" fill="#FF0000" stroke="#d0d0d0"/>
+                  <path d="M15,15 Q25,25 35,35" stroke="#AA0000" stroke-width="4"/>
+                  <path d="M15,35 Q25,25 35,15" stroke="#AA0000" stroke-width="4"/>
+                </svg>
+              </div>
+            </div>
+            <!-- App Contents | Start copy for next line \/ -->
+            <div style="width: 25%; height: calc(100% - 50px); border-right: solid 1px rgba(255, 255, 255, 0.2); margin-right: -1px; float: left;" id="settingsmenu">
+                <div style="height: 30px; width: 100%; border-bottom: 1px solid rgba(255, 255, 255, 0.2); display: flex; justify-content: center; align-items: center; cursor: pointer;" onclick="changeMenu(this)" class="selectedoption">Personalization</div>
+                <div style="height: 30px; width: 100%; border-bottom: 1px solid rgba(255, 255, 255, 0.2); display: flex; justify-content: center; align-items: center; cursor: pointer;" onclick="changeMenu(this)">Key Bindings</div>
+                <div style="height: 30px; width: 100%; border-bottom: 1px solid rgba(255, 255, 255, 0.2); display: flex; justify-content: center; align-items: center; cursor: pointer;" onclick="changeMenu(this)">Developer Mode</div>
+                <div style="height: 30px; width: 100%; border-bottom: 1px solid rgba(255, 255, 255, 0.2); display: flex; justify-content: center; align-items: center; cursor: pointer;" onclick="changeMenu(this)">About</div>
+                <script>
+                  var darkMode = false;
+                  function toggleTheme(caller, darkmode) {
+                    darkMode = darkmode;
+                    console.log(darkMode);
+                    if(darkMode) {
+                      caller.style.border = "3px solid lightgray";
+                      caller.parentElement.parentElement.children[0].children[0].style.border = "3px solid gray";
+                    }
+                    else {
+                      caller.style.border = "3px solid lightgray";
+                      caller.parentElement.parentElement.children[1].children[0].style.border = "3px solid gray";
+                    }
+                    document.body.style.backgroundImage = caller.style.backgroundImage;
+                  }
+                    function changeMenu(el) {
+                      for(var i = 0; i < document.getElementById("settingsmenu").children.length; i++) {
+                        document.getElementById("settingsmenu").children[i].classList.remove("selectedoption");
+                      }
+                      if(!el.classList.contains("selectedoption")) {
+                        el.classList.add("selectedoption");
+                      }
+                      var content = document.getElementById("settingscontent");
+                      if(el.innerHTML == "Personalization") {
+                        content.innerHTML = `
+                        <table cellpadding="10">
+                          <tr>
+                            <td><div style="cursor: pointer; width: 150px; aspect-ratio: 1/1; background-image: linear-gradient(110deg, #fc466b, #3f5efb); border-radius: 5px; border: 3px solid lightgray;" onclick="toggleTheme(this, false)"></div><p style="text-align: center;">Light</p></td>
+                            <td><div style="cursor: pointer; width: 150px; aspect-ratio: 1/1; background-image: linear-gradient(110deg, #b60025, #0018b5); border-radius: 5px; border: 3px solid gray;" onclick="toggleTheme(this, true)"></div><p style="text-align: center;">Dark</p></td>
+                          </tr>
+                          <tr>
+                            <td>
+                        <label>Transparent Taskbar: </label>
+                        </td>
+                        <td>
+            <label class="switch">
+                <input type="checkbox" onchange="if(this.checked) {document.getElementsByClassName('taskbar')[0].style.backgroundColor = 'rgba(255, 255, 255, 0)'} else {document.getElementsByClassName('taskbar')[0].style.backgroundColor = '';}">
+                <span class="slider round"></span>
+            </label></td>
+            </tr>
+            <tr>
+              <td>
+            <label>Taskbar Location</label>
+            </td>
+            <td>
+            <select onchange="if(this.value == 'bottom') {document.getElementsByClassName('taskbar')[0].style.width = '100%'; document.getElementsByClassName('taskbar')[0].style.height = '50px'; document.getElementsByClassName('taskbar')[0].style.top = 'calc(100% - 50px)'; document.getElementsByClassName('taskbar')[0].style.left = '0px';} else if(this.value == 'top') {document.getElementsByClassName('taskbar')[0].style.width = '100%'; document.getElementsByClassName('taskbar')[0].style.height = '50px'; document.getElementsByClassName('taskbar')[0].style.top = '0px'; document.getElementsByClassName('taskbar')[0].style.left = '0px';} else if(this.value == 'left') {document.getElementsByClassName('taskbar')[0].style.width = '50px'; document.getElementsByClassName('taskbar')[0].style.height = '100%'; document.getElementsByClassName('taskbar')[0].style.top = '0px'; document.getElementsByClassName('taskbar')[0].style.left = '0px';} else if(this.value == 'right') {document.getElementsByClassName('taskbar')[0].style.gridTemplateRows = 'repeat(auto-fit, 40px)'; document.getElementsByClassName('taskbar')[0].style.paddingTop: '30%'; document.getElementsByClassName('taskbar')[0].style.width = '50px'; document.getElementsByClassName('taskbar')[0].style.height = '100%'; document.getElementsByClassName('taskbar')[0].style.top = '0px'; document.getElementsByClassName('taskbar')[0].style.left = 'calc(100% - 50px)';}">
+                <option value="bottom">Bottom</option>
+                <option value="top">Top</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+            </select></td>
+            </tr>
+            <tr>
+              <td>
+            <label>Fullscreen</label>
+            </td>
+            <td>
+            <label class="switch">
+                <input type="checkbox" onchange="if(this.checked) {document.documentElement.requestFullscreen();} else {document.exitFullscreen()}" ` + (document.fullscreenElement != null? `checked`: ``) + `>
+                <span class="slider round"></span>
+            </label>
+            </td>
+            </tr>
+            </table>`;
+                      }
+                      else if(el.innerHTML == "Key Bindings") {
+                        content.innerHTML = ``;
+                      }
+                      else if(el.innerHTML == "Developer Mode") {
+                        content.innerHTML = `
+                        <table cellpadding="10">
+                          <tr>
+                            <td><label>Debug Mode</label></td>
+                            <td>
+                              <label class="switch">
+                                <input type="checkbox" ` +
+                            isDebugModeOn(true) +
+                            ` onchange="if(this.checked) {localStorage.setItem('debugMode', true)} else {localStorage.setItem('debugMode', false)}">
+                                <span class="slider round"></span>
+                              </label>
+                            </td>
+                          </tr>
+                        </table>
+                          `;
+                      }
+                      else if(el.innerHTML == "About") {
+                        content.innerHTML = `
+                        <div style="display: flex; justify-content: center; align-items: center;">
+                          <h1>About</h1>
+                        </div>
+                        <div style="display: flex; justify-content: center; align-items: center;">
+                          <h3>Lumina OS (Web)&nbsp;</h3>
+                          <h3 style="font-weight: normal;">3.1.0</h3>
+                        </div>
+                        <div style="display: flex; justify-content: center; align-items: center;">
+                          <h2>Thank you for trying Lumina OS</h2>
+                        `;
+                      }
+                    }
+                    setTimeout(function() {
+                      changeMenu(document.getElementById("settingsmenu").children[0]);
+                    }, 10);
+                </script>
+            </div>
+            <div syle="height: calc(100% - 50px); width: 73%; float: right; padding: 5px 5px 5px 5px;" id="settingscontent"></div>
+        </div>
+    
+    </div>
+    </div>
+    <script>
+      var focusedWindow =
+        document.getElementsByClassName("window")[
+          document.getElementsByClassName("window").length - 1
+        ];
+      var openWindows = [];
+      function arraymove(arr, fromIndex, toIndex) {
+        var element = arr[fromIndex];
+        arr.splice(fromIndex, 1);
+        arr.splice(toIndex, 0, element);
+      }
+      function findIndexFromString(arr, string) {
+        for (var i = 0; i < arr.length; i++) {
+          if (arr[i] == string) {
+            return i;
+          }
+        }
+      }
+      function changeFocus(event, window) {
+        if (
+          event.buttons == 1 &&
+          isMouseAtCorner(event, window).atCorner != true &&
+          event.srcElement.id.includes("windowbox") &&
+          event.srcElement.parentElement.dataMaximized == false
+        ) {
+          var tempEl = window;
+          document.getElementById("main").appendChild(tempEl);
+          focusedWindow = tempEl;
+          var temparray = [];
+          for (
+            var i = 0;
+            i < document.getElementById("main").children.length;
+            i++
+          ) {
+            temparray.push(document.getElementById("main").children[i]);
+          }
+          arraymove(
+            temparray,
+            findIndexFromString(
+              document.getElementById("main").children,
+              tempEl
+            ),
+            document.getElementById("main").children.length - 1
+          );
+          console.log(temparray);
+        }
+      }
+      function isMouseAtCorner(event, element) {
+        // Set detect area:
+        var detectArea = 20;
+        // get element bounds
+        let bounds = element.getBoundingClientRect();
+        // get mouse position relative to element
+        let x = event.clientX - bounds.left;
+        let y = event.clientY - bounds.top;
+        // get element width and height
+        let w = bounds.width;
+        let h = bounds.height;
+        // check if mouse is near any corner
+        if (
+          (x < detectArea && y < detectArea) || // top left
+          (x > w - detectArea && y < detectArea) || // top right
+          (x < detectArea && y > h - detectArea) || // bottom left
+          (x > w - detectArea && y > h - detectArea)
+        ) {
+          // bottom right
+          var which;
+          if (x < detectArea && y < detectArea) {
+            which = "top left";
+          } else if (x > w - detectArea && y < detectArea) {
+            which = "top right";
+          } else if (x < detectArea && y > h - detectArea) {
+            which = "bottom left";
+          } else if (x > w - detectArea && y > h - detectArea) {
+            which = "bottom right";
+          }
+          return {
+            atCorner: true,
+            which: which,
+            x: x,
+            y: y,
+            width: w,
+            height: h,
+          };
+        } else {
+          return {
+            atCorner: false,
+            which: null,
+            x: x,
+            y: y,
+            width: w,
+            height: h,
+          };
+        }
+      }
+      function closeWindow(el) {
+        var window = el.parentElement.parentElement;
+        window.style.animation = "closeWindow 0.1s linear forwards";
+        setTimeout(function () {
+          window.remove();
+        }, 110);
+        focusedWindow =
+          document.getElementsByClassName("window")[
+            document.getElementsByClassName("window").length - 1
+          ];
+      }
+      var prevX = 0;
+      var prevY = 0;
+      function getLengthWithoutDuplicate() {
+        if (
+          document.getElementById(
+            "primarywindowbox" +
+              document.getElementsByClassName("window").length
+          ) != undefined
+        ) {
+          return document.getElementsByClassName("window").length + 1;
+        } else {
+          return document.getElementsByClassName("window").length;
+        }
+      }
+      function createWindow(
+        title,
+        body,
+        options = {
+          close: true,
+          minimize: true,
+          maximize: true,
+          resizeable: true,
+          subtitle: "",
+        },
+        x = 0,
+        y = 0,
+        w = 600,
+        h = 400
+      ) {
+        prevX += 20;
+        prevY += 20;
+        console.log(prevX);
+        console.log(prevY);
+        document.getElementById("main").innerHTML +=
+          `<div class="window" id="` + getLengthWithoutDuplicate() + `primarywindow" style="position: absolute; top: ` + (x != 0 ? x : prevX) + `px; left: ` + (y != 0 ? y : prevY) + `px; animation: openWindow 0.1s linear forwards;` + (w != 600 ? " width: " + w + "px;" : "") + (h != 400 ? " height: " + h + "px;" : "") + ` " onpointermove="changeFocus(event, this);">
+            <div id="` + getLengthWithoutDuplicate() + `primarywindowbox" class="windowBar" style="display:flex; justify-content: center; align-items: center;">
+              <div style="width: 100%;">
+                <h2 style="margin-left: 10px;">` + title +(options.subtitle != "" ? " - <span style='font-weight: normal;'>" + options.subtitle + "</span>" : "") + `</h2>
+              </div>
+              <div style="display: flex; justify-content: right; margin-right: 10px">
+                <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="maximizeWindow(this.parentElement);">
+                  <circle cx="25" cy="25" r="23" fill="#00ff00" stroke="#c0c0c0"/>
+                  <rect x="15" y="15" width="20" height="20" fill="none" stroke="#00AA00" stroke-width="4"/>
+                </svg>
+                <svg height="35" width="35" viewBox="0 0 50 50" style="float: left; cursor: pointer; opacity: 0.8;" class="windowButton" onclick="minimizeWindow(this.parentElement)">
+                  <circle cx="25" cy="25" r="23" fill="#FFFF00" stroke="#d0d0d0"/>
+                  <line x1="15" y1="25" x2="35" y2="25" stroke="#AAAA00" stroke-width="4"/>
+                </svg>
+                <svg height="35" width="35" viewBox="0 0 50 50" style="cursor: pointer; opacity: 0.8;" class="windowButton" onclick="closeWindow(this.parentElement);">
+                  <circle cx="25" cy="25" r="23" fill="#FF0000" stroke="#d0d0d0"/>
+                  <path d="M15,15 Q25,25 35,35" stroke="#AA0000" stroke-width="4"/>
+                  <path d="M15,35 Q25,25 35,15" stroke="#AA0000" stroke-width="4"/>
+                </svg>
+              </div>
+            </div>` +
+          body +
+          `
+          </div>`;
+        for (
+          let i = 0;
+          i < document.getElementsByClassName("window").length;
+          i++
+        ) {
+          dragElement(document.getElementsByClassName("window")[i]);
+          document.getElementsByClassName("window")[i].dataMaximized = false;
+          setTimeout(function () {
+            document.getElementsByClassName("window")[i].style.animation = "";
+          }, 110);
+        }
+        focusedWindow =
+          document.getElementsByClassName("window")[
+            document.getElementsByClassName("window").length - 1
+          ];
+      }
+      function createEmptyWindow() {
+        document.getElementById("primaryWindowTaskbarButton").style.animation =
+          "IconBounce 0.7s ease-in-out";
+        setTimeout(() => {
+          document.getElementById(
+            "primaryWindowTaskbarButton"
+          ).style.animation = "";
+        }, 800);
+        createWindow(
+          "Notepad",
+          `<textarea style="width: 100%; height: 100%; background-color: transparent; border: none;"></textarea>`,
+          { subtitle: "Untitled" },
+          0,
+          0,
+          700,
+          300
+        );
+      }
+      var transparentTaskbar = false;
+      function isDebugModeOn(string = false) {
+        if (string) {
+          var val = localStorage.getItem("debugMode");
+          if (val == "true") {
+            return "checked";
+          } else {
+            return "";
+          }
+        } else {
+          return localStorage.getItem("debugMode") == "false" ? false : true;
+        }
+      }
+      function createSettingsWindow() {
+        document.getElementById("settingsWindowTaskbarButton").style.animation =
+          "IconBounce 0.7s ease-in-out";
+        setTimeout(() => {
+          document.getElementById(
+            "settingsWindowTaskbarButton"
+          ).style.animation = "";
+        }, 800);
+        createWindow(
+          "Settings",
+          `<div style="display: flex; justify-content: center; align-items: center;">
+          <label class="switch">
+                <input type="checkbox" onchange="useKeybinds = this.checked; console.log(useKeybinds)" ` +
+            returnChecked() +
+            `>
+                <span class="slider round"></span>
+            </label>
+            <label>&nbsp;&nbsp;Use Keybinds</label>
+        </div><br><br>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <label class="switch">
+                <input type="checkbox" onchange="if(this.checked) {document.documentElement.requestFullscreen();} else {document.exitFullscreen()}">
+                <span class="slider round"></span>
+            </label>
+            <label>&nbsp;&nbsp;Fullscreen</label>
+        </div><br><br>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <label class="switch">
+                <input type="checkbox" onchange="if(this.checked) {document.getElementsByClassName('taskbar')[0].style.backgroundColor = 'rgba(255, 255, 255, 0)'} else {document.getElementsByClassName('taskbar')[0].style.backgroundColor = '';}">
+                <span class="slider round"></span>
+            </label>
+            <label>&nbsp;&nbsp;Transparent Taskbar</label>
+        </div><br>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <select onchange="if(this.value == 'bottom') {document.getElementsByClassName('taskbar')[0].style.width = '100%'; document.getElementsByClassName('taskbar')[0].style.height = '50px'; document.getElementsByClassName('taskbar')[0].style.top = 'calc(100% - 50px)'; document.getElementsByClassName('taskbar')[0].style.left = '0px';} else if(this.value == 'top') {document.getElementsByClassName('taskbar')[0].style.width = '100%'; document.getElementsByClassName('taskbar')[0].style.height = '50px'; document.getElementsByClassName('taskbar')[0].style.top = '0px'; document.getElementsByClassName('taskbar')[0].style.left = '0px';} else if(this.value == 'left') {document.getElementsByClassName('taskbar')[0].style.width = '50px'; document.getElementsByClassName('taskbar')[0].style.height = '100%'; document.getElementsByClassName('taskbar')[0].style.top = '0px'; document.getElementsByClassName('taskbar')[0].style.left = '0px';} else if(this.value == 'right') {document.getElementsByClassName('taskbar')[0].style.gridTemplateRows = 'repeat(auto-fit, 40px)'; document.getElementsByClassName('taskbar')[0].style.paddingTop: '30%'; document.getElementsByClassName('taskbar')[0].style.width = '50px'; document.getElementsByClassName('taskbar')[0].style.height = '100%'; document.getElementsByClassName('taskbar')[0].style.top = '0px'; document.getElementsByClassName('taskbar')[0].style.left = 'calc(100% - 50px)';}">
+                <option value="bottom">Bottom</option>
+                <option value="top">Top</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+            </select>
+        </div><br>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <label class="switch">
+                <input type="checkbox" ` +
+            isDebugModeOn(true) +
+            ` onchange="if(this.checked) {localStorage.setItem('debugMode', true)} else {localStorage.setItem('debugMode', false)}">
+                <span class="slider round"></span>
+            </label>
+            <label>&nbsp;&nbsp;Debug Mode</label>
+        </div><br>`
+        );
+      }
+      function createBrowserWindow() {
+        document.getElementById("browserWindowTaskbarButton").style.animation =
+          "IconBounce 0.7s ease-in-out";
+        setTimeout(() => {
+          document.getElementById(
+            "browserWindowTaskbarButton"
+          ).style.animation = "";
+        }, 800);
+        createWindow(
+          "Lumina Browser",
+          `<button onclick="history.back();">Back</button>
+        <button onclick="history.forward();">Forward</button>
+        <button onclick="document.getElementById('BrowserWindow').src = document.getElementById('BrowserWindow').src;">Reload</button>
+        <input type="text" style="width: 70%;" onkeypress="if(event.key == 'Enter' && !this.value.includes(' ') && this.value.includes('://')) {document.getElementById('BrowserWindow').src = this.value;} else if(event.key == 'Enter' && !this.value.includes('://')) {document.getElementById('BrowserWindow').src = searchHandler + this.value.replace(' ', '+');}" id="urlBox">
+        <iframe style="height: 100%; width: 100%;" id="BrowserWindow" onchange="document.getElementById('urlBox').value = this.src;"></iframe>`
+        );
+      }
+      function returnChecked() {
+        if (useKeybinds) {
+          return "checked";
+        } else {
+          return "";
+        }
+      }
+      var windowData = {};
+      function maximizeWindow(el) {
+        var window = el.parentElement.parentElement;
+        if (window.dataMaximized == false) {
+          windowData[window.id] = {};
+          windowData[window.id]["height"] =
+            window.getBoundingClientRect().height;
+          windowData[window.id]["width"] = window.getBoundingClientRect().width;
+          console.log(windowData);
+          window.style.animation = "maximize 0.3s linear forwards";
+          window.style.width = window.getBoundingClientRect().width + "px";
+          window.style.height = window.getBoundingClientRect().height + "px";
+          setTimeout(function () {
+            window.style.height = "calc(100% - 50px)";
+            window.style.width = "100%";
+          }, 400);
+          window.dataMaximized = true;
+        } else {
+          window.style.animation = "restore 0.3s linear forwards";
+          window.style.height = windowData[window.id]["height"] + "px";
+          window.style.width = windowData[window.id]["width"] + "px";
+          setTimeout(function () {
+            window.style.animation = "";
+          }, 400);
+          window.dataMaximized = false;
+        }
+        console.log(window);
+      }
+      function minimizeWindow(el) {
+        var window = el.parentElement.parentElement;
+        console.log(window);
+        window.style.animation = "minimize 0.2s linear forwards";
+        setTimeout(function () {
+          window.hidden = true;
+        }, 260);
+        var app = document.createElement("div");
+        document.getElementsByClassName("taskbar")[0].innerHTML +=
+          `<div style="width: 30px; height: 30px; background-color: lightgray; cursor: pointer;" onclick="restoreWindow('` +
+          window.id +
+          `', this)"></div>`;
+      }
+      function restoreWindow(id, caller) {
+        document.getElementById(id).hidden = false;
+        document.getElementById(id).style.animation =
+          "unminimize 0.2s linear forwards";
+        setTimeout(function () {
+          document.getElementById(id).style.animation = "";
+        }, 260);
+        caller.remove();
+      }
+      function windowKeyPressed(e) {
+        if (useKeybinds) {
+          // e.preventDefault(); e.stopPropagation();
+          if (e.altKey && e.key == "w") {
+            e.preventDefault();
+            e.stopPropagation();
+            closeWindow(focusedWindow.children[0].children[0]);
+          } else if (e.altKey && e.key == "t") {
+            e.preventDefault();
+            e.stopPropagation();
+            createBrowserWindow();
+          } else if (e.altKey && e.key == "-") {
+            e.preventDefault();
+            e.stopPropagation();
+            minimizeWindow(focusedWindow.children[0].children[0]);
+          } else if (e.altKey && e.key == "=") {
+            e.preventDefault();
+            e.stopPropagation();
+            maximizeWindow(focusedWindow.children[0].children[0]);
+          }
+        }
+        console.log(e);
+      }
+    </script>
+    <script>
+      // Make the DIV element draggable:
+      for (
+        let i = 0;
+        i < document.getElementsByClassName("window").length;
+        i++
+      ) {
+        dragElement(document.getElementsByClassName("window")[i]);
+        document.getElementsByClassName("window")[i].dataMaximized = false;
+      }
+
+      function dragElement(elmnt) {
+        var pos1 = 0,
+          pos2 = 0,
+          pos3 = 0,
+          pos4 = 0;
+        if (document.getElementById(elmnt.id + "box")) {
+          // if present, the header is where you move the DIV from:
+          document.getElementById(elmnt.id + "box").onpointerdown = dragMouseDown;
+        } else {
+          // otherwise, move the DIV from anywhere inside the DIV:
+          elmnt.onpointerdown = dragMouseDown;
+        }
+
+        function dragMouseDown(e) {
+          e = e || window.event;
+          e.preventDefault();
+          // get the mouse cursor position at startup:
+          pos3 = e.clientX;
+          pos4 = e.clientY;
+          document.onpointerup = closeDragElement;
+          // call a function whenever the cursor moves:
+          if (!elmnt.dataMaximized) {
+            document.onpointermove = elementDrag;
+          }
+        }
+
+        function elementDrag(e) {
+          e = e || window.event;
+          e.preventDefault();
+          // calculate the new cursor position:
+          pos1 = pos3 - e.clientX;
+          pos2 = pos4 - e.clientY;
+          pos3 = e.clientX;
+          pos4 = e.clientY;
+          // set the element's new position:
+          if (!elmnt.dataMaximized) {
+            elmnt.style.top = elmnt.offsetTop - pos2 + "px";
+            elmnt.style.left = elmnt.offsetLeft - pos1 + "px";
+            if (elmnt.style.left.replace("px", "") < 50) {
+              var dropzone = document.createElement("div");
+              dropzone.classList.add("dropzone");
+              dropzone.style.width = "100px";
+              dropzone.style.height = "100px";
+            }
+          }
+        }
+
+        function closeDragElement() {
+          // stop moving when mouse button is released:
+          document.onpointerup = null;
+          document.onpointermove = null;
+        }
+      }
+    </script>
+  </body>
+</html>
