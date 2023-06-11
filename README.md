@@ -1,7 +1,7 @@
-# Lumina OS Demo
+# Windows 12 Concept
 
 ## Introduction
-Lumina OS Demo is a demo of a much larger project called Lumina OS (codenamed Stellar) which is essentially an operating system that focuses on performance while maintaining Aesthetics. 
+This is my attempt to create a concept of what Windows 12 might look like. 
 
 ## Current Features
 You can currently do the following: 
